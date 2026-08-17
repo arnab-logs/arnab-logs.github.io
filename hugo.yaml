@@ -1,0 +1,80 @@
+baseURL: "https://arnab-logs.github.io/"
+title: "Arnab Nandi"
+theme: "PaperMod"
+paginate: 10
+enableRobotsTXT: true
+buildDrafts: false
+buildFuture: false
+buildExpired: false
+
+minify:
+  disableXML: true
+
+params:
+  env: production
+  title: Your Name
+  description: "Writing about the things I learn in..."
+  keywords: [Blog, Portfolio]
+  author: Arnab Nandi
+  DateFormat: "January 2, 2006"
+  defaultTheme: dark        # auto / dark / light — gives the moon-icon toggle
+  disableThemeToggle: false
+  ShowReadingTime: true
+  ShowShareButtons: true
+  ShowPostNavLinks: true
+  ShowBreadCrumbs: true
+  ShowCodeCopyButtons: true
+  ShowRssButtonInSectionTermList: false
+  ShowToc: true
+  comments: false
+
+  homeInfoParams:
+    Title: "Arnab Nandi"
+    Content: "Writing about the things I learn & discover... my thoughts, fragments and reflections.  \n\n  ~Sic Parvis Magna"
+
+  socialIcons:
+    - name: github
+      url: "https://github.com/arnab-logs"
+    - name: x
+      url: "https://x.com/arnablogs"
+    - name: linkedin
+      url: "https://www.linkedin.com/in/iamarnabnandi/"
+    - name: hashnode
+      url: "https://hashnode.com/@arnabnandi"
+
+  assets:
+    disableHLJS: true
+    favicon: "/favicon.ico"
+
+  fuseOpts:
+    isCaseSensitive: false
+    shouldSort: true
+    location: 0
+    distance: 1000
+    threshold: 0.4
+    minMatchCharLength: 0
+
+menu:
+  main:
+    - identifier: about
+      name: About
+      url: /about/
+      weight: 10
+    - identifier: tags
+      name: Tags
+      url: /tags/
+      weight: 20
+    - identifier: archives
+      name: Index
+      url: /archives/
+      weight: 30
+    - identifier: search
+      name: Search
+      url: /search/
+      weight: 40
+
+outputs:
+  home:
+    - HTML
+    - RSS
+    - JSON   # required for the search page (Fuse.js index)

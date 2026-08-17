@@ -1,0 +1,361 @@
+/* ==========================================================================
+   Color tokens — overriding PaperMod's defaults
+   ========================================================================== */
+:root {
+  --gap: 24px;
+  --content-gap: 20px;
+  --main-width: 680px;
+  --radius: 4px;
+
+  --theme: #faf9f6;
+  --entry: #ffffff;
+  --primary: #1a1b1e;
+  --secondary: #6b6f76;
+  --tertiary: #e8e6e1;
+  --content: #2a2b2e;
+  --code-block-bg: #f3f2ee;
+  --code-bg: #efeee9;
+  --border: #d8d5cd;
+  --accent: #c0553f;      /* coral, darker for light-mode contrast */
+  --accent-tag: #A5B18D;  /* olive, darker for light-mode contrast */
+  --gradient-start: #7c6a8f;
+  --gradient-end: #c0553f;
+}
+
+.dark {
+  --theme: #18181b;
+  --entry: #1c1c1f;
+  --primary: #e6e3da;
+  --secondary: #8a8d94;
+  --tertiary: #232326;
+  --content: #c7c4bb;
+  --code-block-bg: #141416;
+  --code-bg: #141416;
+  --border: #2a2a2e;
+  --accent: #e2836f;       /* coral — headings, underline, active states */
+  --accent-tag: #a9a875;   /* olive — tag chips only */
+  --gradient-start: #7c6a8f;
+  --gradient-end: #e2836f;
+}
+
+/* ==========================================================================
+   Typography
+   ========================================================================== */
+body {
+  font-family: "Lora", Georgia, serif !important;
+  font-size: 17px;
+  line-height: 1.75;
+  letter-spacing: -0.011em;
+}
+
+/* Post/page prose reads in serif, matching the reference site */
+.post-content,
+.post-content p,
+.post-content li,
+.entry-content,
+.entry-content p,
+body .post-content p,
+body .entry-content p {
+  font-family: "Lora", Georgia, serif !important;
+  font-weight: 300 !important;
+  font-size: 1.08rem;
+  line-height: 1.85;
+  letter-spacing: 0;
+}
+
+h1, h2, h3, h4,
+.post-title,
+.entry-header h2 {
+  font-family: "Lora", Georgia, serif;
+  font-weight: 400;
+  letter-spacing: -0.005em;
+}
+
+.post-title {
+  font-size: 2.4rem;
+  line-height: 1.2;
+}
+
+article code, code {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.88em;
+}
+
+/* Regular page titles (About, etc.) — same gradient underline as homepage name */
+.post-single .post-title,
+.page-header h1,
+article.page .post-title {
+  display: inline-block;
+  padding-bottom: 14px;
+  border-bottom: 3px solid transparent;
+  border-image: linear-gradient(90deg, var(--gradient-start), var(--gradient-end)) 1;
+  margin-bottom: var(--content-gap);
+}
+
+/* Homepage intro name/description gets extra display treatment */
+.home-info .profile h1,
+#profile h1,
+.home-info h1 {
+  font-family: "Lora", Georgia, serif;
+  font-weight: 700;
+  font-size: 2.75rem;
+  display: inline-block;
+  padding-bottom: 14px;
+  border-bottom: 3px solid transparent;
+  border-image: linear-gradient(90deg, var(--gradient-start), var(--gradient-end)) 1;
+}
+
+/* "Recent Posts" section heading — coral, distinct from post titles */
+.home-info + h2,
+h2.recent-posts-heading,
+body h2.recent-posts-heading {
+  font-family: "Lora", Georgia, serif;
+  font-weight: 600;
+  color: var(--accent) !important;
+  font-size: 1.7rem;
+  margin-top: var(--gap);
+}
+
+/* Dates set in monospace, like a timestamp */
+.post-entry .entry-header + time,
+.entry-header .post-meta,
+time,
+.post-meta {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.82rem;
+  letter-spacing: 0;
+}
+
+/* Thin gradient bar at the very top of the page — signature detail */
+body {
+  padding-top: 3px;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--gradient-start), var(--accent-tag), var(--gradient-end));
+  z-index: 1000;
+}
+
+/* ==========================================================================
+   Archive page — year headings with coral underline
+   ========================================================================== */
+.archive-year,
+.archive h2,
+article.archive h2,
+main .archive > h2 {
+  color: var(--accent) !important;
+  font-family: "Lora", Georgia, serif;
+  font-weight: 700;
+  font-size: 1 rem;
+  border-bottom: 2px solid var(--accent);
+  padding-bottom: 12px;
+  margin-top: var(--gap);
+  margin-bottom: var(--content-gap);
+}
+
+/* Archive post rows — date in mono, title in serif */
+.archive-posts li,
+.archive li {
+  display: flex;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  align-items: baseline;
+}
+
+.archive-posts .archive-post-date,
+.archive li time,
+.archive-post-date {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.82rem;
+  color: var(--secondary);
+  min-width: 60px;
+  flex-shrink: 0;
+}
+
+.archive-posts a,
+.archive li a {
+  font-family: "Lora", Georgia, serif;
+  color: var(--primary);
+  text-decoration: none;
+  background-image: linear-gradient(var(--accent), var(--accent));
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0% 1px;
+  transition: background-size 0.3s ease, color 0.2s ease;
+}
+
+.archive-posts a:hover,
+.archive li a:hover {
+  background-size: 100% 1px;
+  color: var(--accent);
+}
+
+/* ==========================================================================
+   Tags overview page — outlined olive boxes with counts
+   ========================================================================== */
+.terms-tags a,
+.terms-tags li a,
+ul.terms-tags li a {
+  display: inline-block;
+  border: 1px solid var(--accent-tag) !important;
+  background: transparent !important;
+  color: var(--accent-tag) !important;
+  border-radius: 4px;
+  padding: 5px 10px;
+  font-size: 0.95rem;
+  font-family: "Lora", Georgia, serif !important;
+  font-weight: 400 !important;
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.terms-tags a:hover,
+.terms-tags li a:hover,
+ul.terms-tags li a:hover {
+  background-color: var(--accent-tag) !important;
+  color: var(--theme) !important;
+}
+
+
+.post-entry .entry-header h2,
+.post-single h1.post-title {
+  transition: color 0.25s ease;
+}
+
+article a,
+.entry-header a,
+.post-content a {
+  position: relative;
+  text-decoration: none;
+  background-image: linear-gradient(var(--accent), var(--accent));
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0% 1px;
+  transition: background-size 0.3s ease;
+  color: var(--primary);
+}
+
+article a:hover,
+.entry-header a:hover,
+.post-content a:hover {
+  background-size: 100% 1px;
+  color: var(--accent);
+}
+
+/* ==========================================================================
+   Post list cards — quiet, no heavy borders
+   ========================================================================== */
+.post-entry {
+  border: none;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  padding: 28px 0;
+  background: transparent;
+  transition: transform 0.2s ease;
+}
+
+.post-entry:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.post-entry .entry-header h2 {
+  transition: color 0.2s ease;
+}
+
+.post-entry:hover .entry-header h2 {
+  color: var(--accent);
+}
+
+/* ==========================================================================
+   Tags — thin outlined pills instead of filled badges
+   ========================================================================== */
+.entry-tags,
+.post-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+ul.post-tags li,
+body ul.post-tags li {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  display: inline-block;
+}
+
+.entry-tags a,
+.post-tags a,
+body .post-tags a,
+ul.post-tags li a {
+display: inline-block;
+  position: relative;
+  z-index: 2;
+  border: 1px solid var(--accent-tag) !important;
+  background: transparent !important;
+  color: var(--accent-tag) !important;
+  border-radius: 3px;
+  padding: 1px 8px; 
+  font-family: "Lora", Georgia, serif !important;
+  font-weight: 400 !important;
+  font-size: 0.85rem;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.entry-tags a:hover,
+.post-tags a:hover,
+ul.post-tags li a:hover {
+  background-color: var(--accent-tag) !important;
+  color: var(--theme) !important;
+}
+
+/* ==========================================================================
+   Nav & header — restrained
+   ========================================================================== */
+.nav {
+  border-bottom: 1px solid var(--border);
+}
+
+.logo a {
+  font-family: "Lora", Georgia, serif;
+  font-weight: 700;
+  background-image: none !important;
+}
+
+.menu ul li a {
+  font-size: 0.9rem;
+  color: var(--secondary);
+  background-image: none !important;
+}
+
+.menu ul li a:hover {
+  color: var(--accent);
+}
+
+/* ==========================================================================
+   Code blocks
+   ========================================================================== */
+.post-content pre {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+.footer {
+  border-top: 1px solid var(--border);
+  color: var(--secondary);
+  font-size: 0.85rem;
+}
