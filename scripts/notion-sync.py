@@ -36,11 +36,14 @@ def get_data_source_id(database_id):
 
 
 def query_data_source(data_source_id):
+   
     url = f'{NOTION_API}/data_sources/{data_source_id}/query'
     payload = {
         'filter': {
-            'property': 'Status',
-            'select': {'equals': 'Published'}
+            'or': [
+                {'property': 'Status', 'select': {'equals': 'Published'}},
+                {'property': 'Status', 'select': {'equals': 'Ready'}}
+            ]
         },
         'sorts': [
             {'property': 'Published Date', 'direction': 'descending'}
@@ -89,11 +92,10 @@ def rich_text_to_markdown(rich_text):
 
 
 def download_image(url, slug, index):
-    
+   
     resp = requests.get(url, timeout=30)
     resp.raise_for_status()
 
-    # Work out a reasonable file extension
     parsed_path = urlparse(url).path
     ext = Path(parsed_path).suffix.split('?')[0]
     if not ext or len(ext) > 5:
@@ -178,7 +180,11 @@ def extract_properties(page):
     tags_prop = props.get('Tags')
     tags = [t['name'] for t in tags_prop['multi_select']] if tags_prop and tags_prop.get('multi_select') else []
 
-    return {'title': title, 'date': date, 'slug': slug, 'description': description, 'tags': tags}
+    status_prop = props.get('Status')
+    status = status_prop['select']['name'] if status_prop and status_prop.get('select') else 'Draft'
+    is_draft = status != 'Published'   # Ready -> draft:true, Published -> draft:false
+
+    return {'title': title, 'date': date, 'slug': slug, 'description': description, 'tags': tags, 'is_draft': is_draft}
 
 
 def write_hugo_post(properties, content):
@@ -191,7 +197,7 @@ title: "{properties['title']}"
 date: {properties['date']}
 description: "{properties['description']}"
 tags: [{tags_str}]
-draft: false
+draft: {str(properties['is_draft']).lower()}
 ---
 
 """
