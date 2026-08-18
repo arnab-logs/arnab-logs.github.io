@@ -10,7 +10,7 @@ draft: true
 
 This is a test post that I am using to test my My Notion → Hugo Publishing Setup
 
-I'm currently trying to get my blog setup to work a little differently. Instead of writing a post directly in Hugo, I want to be able to write it in **Notion**, mark it as published, and let the rest happen automatically.
+I'm currently trying to get my blog setup to work a little differently. Instead of writing a post directly in Hugo, I want to be able to write it in **Notion**, mark it as published and let the rest happen automatically.
 
 ### What I'm Testing
 
