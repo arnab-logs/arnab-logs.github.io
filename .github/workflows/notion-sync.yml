@@ -39,7 +39,10 @@ jobs:
       - name: Check for changes
         id: verify_diff
         run: |
-          git add content/posts/ static/images/posts/
+          git add content/posts/
+          if [ -d "static/images/posts" ]; then
+            git add static/images/posts/
+          fi
           git diff --staged --quiet || echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - name: Commit and push if changed
