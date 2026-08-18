@@ -10,7 +10,7 @@ on:
       - 'scripts/notion-sync.py'
 
 permissions:
-  contents: write   # needed to commit + push synced files — nothing else is granted
+  contents: write   
 
 jobs:
   sync:
@@ -39,10 +39,7 @@ jobs:
       - name: Check for changes
         id: verify_diff
         run: |
-          git add content/posts/
-          if [ -d "static/images/posts" ]; then
-            git add static/images/posts/
-          fi
+          git add content/posts/ static/images/posts/
           git diff --staged --quiet || echo "changed=true" >> "$GITHUB_OUTPUT"
 
       - name: Commit and push if changed
@@ -63,7 +60,7 @@ jobs:
 
       - name: Build preview site (includes drafts)
         if: steps.verify_diff.outputs.changed == 'true'
-        run: hugo --gc -D --destination preview-build
+        run: hugo --gc -D --baseURL "http://localhost:8000/" --destination preview-build
 
       - name: Zip the preview build
         if: steps.verify_diff.outputs.changed == 'true'
@@ -75,4 +72,4 @@ jobs:
         with:
           name: site-preview
           path: site-preview.zip
-          retention-days: 1   # platform minimum; the cleanup workflow deletes it after 30 min anyway
+          retention-days: 1   
