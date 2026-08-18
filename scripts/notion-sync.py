@@ -36,7 +36,7 @@ def get_data_source_id(database_id):
 
 
 def query_data_source(data_source_id):
-   
+    
     url = f'{NOTION_API}/data_sources/{data_source_id}/query'
     payload = {
         'filter': {
@@ -198,12 +198,35 @@ date: {properties['date']}
 description: "{properties['description']}"
 tags: [{tags_str}]
 draft: {str(properties['is_draft']).lower()}
+source: notion
 ---
 
 """
     filepath.parent.mkdir(parents=True, exist_ok=True)
     filepath.write_text(front_matter + content, encoding='utf-8')
     print(f'  ✓ {filepath}')
+
+
+def reconcile_deleted_posts(current_slugs):
+    
+    posts_dir = Path(OUTPUT_DIR)
+    if not posts_dir.exists():
+        return
+
+    for f in posts_dir.glob('*.md'):
+        slug = f.stem
+        text = f.read_text(encoding='utf-8')
+        front_matter_block = text.split('---', 2)[1] if text.startswith('---') else ''
+        is_notion_sourced = 'source: notion' in front_matter_block
+
+        if is_notion_sourced and slug not in current_slugs:
+            print(f'  ✗ Removing (no longer Ready/Published in Notion): {f}')
+            f.unlink()
+            image_folder = Path(IMAGE_DIR) / slug
+            if image_folder.exists():
+                import shutil
+                shutil.rmtree(image_folder)
+
 
 
 def sync():
@@ -214,12 +237,17 @@ def sync():
     pages = query_data_source(data_source_id)
     print(f'Found {len(pages)} published post(s)\n')
 
+    current_slugs = set()
     for page in pages:
         properties = extract_properties(page)
+        current_slugs.add(properties['slug'])
         print(f'Syncing: {properties["title"]}')
         blocks = get_page_blocks(page['id'])
         content = notion_to_markdown(blocks, properties['slug'])
         write_hugo_post(properties, content)
+
+    print('\nReconciling deletions...')
+    reconcile_deleted_posts(current_slugs)
 
     print('\nDone.')
 
