@@ -1,0 +1,75 @@
+name: Sync Notion to Hugo
+
+on:
+  schedule:
+    - cron: '0 * * * *'   # every hour
+  workflow_dispatch:        # lets you trigger it manually from the Actions tab
+  push:
+    paths:
+      - '.github/workflows/notion-sync.yml'
+      - 'scripts/notion-sync.py'
+
+permissions:
+  contents: write   # needed to commit + push synced files — nothing else is granted
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Run Notion sync
+        env:
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_DATABASE_ID: ${{ secrets.NOTION_DATABASE_ID }}
+        run: python scripts/notion-sync.py
+
+      - name: Check for changes
+        id: verify_diff
+        run: |
+          git add content/posts/ static/images/posts/
+          git diff --staged --quiet || echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push if changed
+        if: steps.verify_diff.outputs.changed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git commit -m "Sync from Notion"
+          git push
+
+      - name: Install Hugo CLI
+        if: steps.verify_diff.outputs.changed == 'true'
+        env:
+          HUGO_VERSION: 0.160.1
+        run: |
+          wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb
+          sudo dpkg -i ${{ runner.temp }}/hugo.deb
+
+      - name: Build preview site (includes drafts)
+        if: steps.verify_diff.outputs.changed == 'true'
+        run: hugo --gc -D --destination preview-build
+
+      - name: Zip the preview build
+        if: steps.verify_diff.outputs.changed == 'true'
+        run: cd preview-build && zip -r ../site-preview.zip .
+
+      - name: Upload preview artifact
+        if: steps.verify_diff.outputs.changed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: site-preview
+          path: site-preview.zip
+          retention-days: 1   # platform minimum; the cleanup workflow deletes it after 30 min anyway

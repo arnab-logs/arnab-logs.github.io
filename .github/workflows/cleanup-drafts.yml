@@ -1,0 +1,72 @@
+name: Cleanup Stale Drafts
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'   # checks every 10 minutes
+  workflow_dispatch:            # lets you trigger it manually too
+
+permissions:
+  contents: write
+  actions: write   # needed to delete artifacts
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Remove draft posts older than 30 minutes
+        id: cleanup_files
+        run: |
+          changed=false
+          now_ts=$(date +%s)
+
+          if [ -d "content/posts" ]; then
+            for f in content/posts/*.md; do
+              [ -e "$f" ] || continue
+              if grep -q '^draft: true$' "$f"; then
+                last_commit_ts=$(git log -1 --format=%ct -- "$f")
+                age=$(( now_ts - last_commit_ts ))
+                if [ "$age" -gt 1800 ]; then
+                  slug=$(basename "$f" .md)
+                  echo "Removing stale draft: $f (age ${age}s)"
+                  rm -f "$f"
+                  rm -rf "static/images/posts/$slug"
+                  changed=true
+                fi
+              fi
+            done
+          fi
+
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push if changed
+        if: steps.cleanup_files.outputs.changed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add content/posts/ static/images/posts/
+          git commit -m "Remove stale Ready drafts (30+ min old)"
+          git push
+
+      - name: Delete preview artifacts older than 30 minutes
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const thirtyMinAgo = Date.now() - 30 * 60 * 1000;
+            const artifacts = await github.paginate(
+              github.rest.actions.listArtifactsForRepo,
+              { owner: context.repo.owner, repo: context.repo.repo }
+            );
+            for (const artifact of artifacts) {
+              if (artifact.name === 'site-preview' &&
+                  new Date(artifact.created_at).getTime() < thirtyMinAgo) {
+                await github.rest.actions.deleteArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: artifact.id
+                });
+                console.log(`Deleted artifact ${artifact.id} (created ${artifact.created_at})`);
+              }
+            }
