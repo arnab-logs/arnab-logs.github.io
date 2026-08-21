@@ -4,8 +4,8 @@ date: 2026-08-19
 description: "
 Why re-writing an unchanged Node status still costs etcd a full write and how a heartbeat timer fixes it.
 "
-tags: ["Kubernetes", "NodeReadinessController", "OpenSource", "etcd"]
-draft: true
+tags: ["Kubernetes", "NodeReadinessController", "etcd", "Opensource-learnings"]
+draft: false
 source: notion
 ---
 
@@ -25,7 +25,7 @@ A reviewer tested that locally and found the request rate itself wasn't really a
 
 The author pushed back with a bigger number i.e. in case the project targets a scale of 5,000 nodes, it would mean 500 requests a second and surely that's too much. 
 
-The reviewer reframed the actual problem during review and this is the part that took me some time to understand i.e. **the actual cost isn't the number of requests, it's that Kubernetes stores the entire Node object in etcd, and every write, even a no-op write forces etcd to persist the whole thing again. **Reads were not the problem but writes were.
+The reviewer reframed the actual problem during review and this is the part that took me some time to understand i.e. **the actual cost isn’t the number of requests, it’s that Kubernetes stores the entire Node object in etcd, and every write, even a no-op write forces etcd to persist the whole thing again.** Reads were not the problem but writes were.
 
 I didn't get this on the first pass. I got it on maybe the fourth after tracing through who said what to whom and in what order in the PR discussions. 
 
@@ -93,7 +93,7 @@ My first assumption was that writing more often means more requests hitting the 
 
 In simple words, the actual cost is in etcd, which is the database Kubernetes. When the reporter writes a Node's status, etcd doesn't update just the one field that changed. It has to persist the entire Node object again i.e. every label, every taint, every other condition, all of it. 
 
-We can think of it like, a key-value store like etcd does not understand "fields" inside that value at all. It just sees one blob of bytes under one key. So when the reporter wants to update for example, *just* the `CalicoReady` condition i.e. one status field, one reason, one timestamp, there's no way to tell etcd "just change this one line" as etcd has no concept of "one line" inside the value. The only operation it has is: take the *whole* blob, and replace it with a *new whole* blob.
+We can think of it like: A key-value store like etcd does not understand "fields" inside that value at all. It just sees one blob of bytes under one key. So when the reporter wants to update for example, *just* the `CalicoReady` condition i.e. one status field, one reason, one timestamp, there's no way to tell etcd "just change this one line" as etcd has no concept of "one line" inside the value. The only operation it has is: take the *whole* blob, and replace it with a *new whole* blob.
 
 This is because that is how etcd stores things. So a write that changes nothing meaningful, still costs the same as a write that changes something real. Multiply that by thousands of nodes checking in every thirty seconds and you are asking etcd to constantly re-save data that hasn't actually changed.
 
@@ -107,7 +107,7 @@ That's the whole idea. Everything else in the PR exists to make that one decisio
 
 ### Why you can't just stop writing
 
-Skipping the write has a side effect. Node conditions carry a field called `LastHeartbeatTime` (see [here](/3bf69b308045805cb345e9e3df710f16#3c169b308045803bafa3d5bd66be9b1c)) i.e. the last time the condition was confirmed, whether or not anything changed. If the reporter simply stops writing whenever the state is unchanged, that timestamp goes stale. And a stale `LastHeartbeatTime` looks exactly like a dead reporter even if the reporter is running perfectly fine and just has nothing new to say.
+Skipping the write has a side effect. Node conditions carry a field called `LastHeartbeatTime` i.e. the last time the condition was confirmed, whether or not anything changed. If the reporter simply stops writing whenever the state is unchanged, that timestamp goes stale. And a stale `LastHeartbeatTime` looks exactly like a dead reporter even if the reporter is running perfectly fine and just has nothing new to say.
 
 This is where `HEARTBEAT_PERIOD` comes in. In simple terms, it is a ceiling on how long the reporter is allowed to stay silent. Even if nothing has changed, once this much time has passed since the last write, the reporter writes anyway, purely to refresh `LastHeartbeatTime`. 
 
