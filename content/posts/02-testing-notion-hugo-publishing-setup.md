@@ -53,4 +53,4 @@ For now, though...
 
 **This is me testing whether the system works as expected. **
 
-![Image](/images/posts/testing-notion-hugo-publishing-setup/img1.png)
+![Image](/images/posts/02-testing-notion-hugo-publishing-setup/img1.png)
